@@ -1,3 +1,4 @@
+import re
 import secrets
 from datetime import datetime, timedelta
 from functools import wraps
@@ -152,6 +153,21 @@ class UsuarioService:
 
     def listar(self):
         return self.usuarios.listar()
+
+    def crear(self, nombre: str, nombre_usuario: str, rol: str) -> tuple[Usuario, str]:
+        nombre = v.texto(nombre, "nombre", maximo=120, minimo=3)
+        nombre_usuario = v.texto(nombre_usuario, "usuario", maximo=40, minimo=3).lower()
+        if not re.fullmatch(r"[a-z0-9._-]+", nombre_usuario):
+            raise v.ErrorValidacion(
+                "El usuario solo admite minúsculas, números, punto y guion, sin espacios ni tildes.")
+        rol = v.opcion(rol, RolUsuario, "rol")
+        if self.usuarios.obtener_por_nombre(nombre_usuario):
+            raise v.ErrorNegocio("Ya existe un usuario con ese nombre.")
+        temporal = "Tmp-" + secrets.token_urlsafe(9)
+        usuario = self.usuarios.guardar(Usuario(
+            nombre=nombre, usuario=nombre_usuario, rol=rol,
+            hash_contrasena=cifrar_contrasena(temporal), debe_cambiar_contrasena=True))
+        return usuario, temporal
 
     def _obtener(self, usuario_id: int) -> Usuario:
         usuario = self.usuarios.obtener(usuario_id)

@@ -163,6 +163,20 @@ def usuarios():
         "usuarios.html", usuarios_sistema=UsuarioService(request.sesion).listar(),
         ahora=datetime.now(), estado_servicios=ConsultaService(request.sesion).estado_servicios())
 
+@app.post("/usuarios/nuevo")
+@requiere_rol(R.ADMINISTRADOR)
+def crear_usuario():
+    try:
+        usuario, temporal = UsuarioService(request.sesion).crear(
+            request.form.get("nombre"), request.form.get("usuario"), request.form.get("rol"))
+        AutenticacionService(request.sesion).registrar(
+            "CREA_USUARIO", "Usuario", usuario.id, "EXITO",
+            f"{usuario.usuario} ({usuario.rol.value})")
+        flash(f"Usuario {usuario.usuario} creado. Clave temporal: {temporal} . Entréguela en "
+              "persona; el sistema le pedirá cambiarla al ingresar.", "warning")
+    except ErrorNegocio as error:
+        flash(str(error), "danger")
+    return volver("usuarios")
 
 @app.post("/usuarios/<int:usuario_id>/<accion>")
 @requiere_rol(R.ADMINISTRADOR)

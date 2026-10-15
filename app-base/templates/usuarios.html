@@ -66,4 +66,33 @@
     </div>
   </div>
 </div>
+<div class="tarjeta mt-3">
+  <div class="tarjeta-titulo">Nuevo usuario</div>
+  <div class="p-3">
+    <form method="post" action="{{ url_for('crear_usuario') }}" class="row g-2"
+          onsubmit="this.querySelector('button').disabled = true;">
+      <div class="col-md-4">
+        <label for="nuevo_nombre" class="form-label">Nombre completo</label>
+        <input id="nuevo_nombre" name="nombre" class="form-control" required minlength="3" maxlength="120">
+      </div>
+      <div class="col-md-3">
+        <label for="nuevo_usuario" class="form-label">Usuario</label>
+        <input id="nuevo_usuario" name="usuario" class="form-control" required minlength="3" maxlength="40"
+               pattern="[a-z0-9._\-]+" title="Minúsculas, números, punto o guion, sin espacios"
+               placeholder="ej. mlopez">
+      </div>
+      <div class="col-md-3">
+        <label for="nuevo_rol" class="form-label">Rol</label>
+        <select id="nuevo_rol" name="rol" class="form-select" required>
+          {% for rol, etiqueta in etiquetas_rol.items() %}
+          <option value="{{ rol.value }}">{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100">Crear</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
