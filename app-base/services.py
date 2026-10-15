@@ -423,6 +423,37 @@ class ConsultaService:
         except MicroservicioError:
             return []
 
+class MedicoService:
+    """Catalogo de medicos de la fundacion: agregar y corregir datos."""
+
+    def __init__(self, sesion):
+        self.sesion = sesion
+        self.catalogo = CatalogoRepository(sesion)
+
+    def _validar(self, datos, medico_id=None):
+        nombre = v.texto(datos.get("nombre"), "nombre del médico", maximo=120, minimo=5)
+        colegiado = v.texto(datos.get("colegiado"), "colegiado", obligatorio=False, maximo=30)
+        if colegiado and any(m.colegiado == colegiado and m.id != medico_id
+                             for m in self.catalogo.medicos()):
+            raise ErrorValidacion("Ya hay un médico registrado con ese número de colegiado.")
+        return nombre, colegiado
+
+    def crear(self, datos) -> Medico:
+        nombre, colegiado = self._validar(datos)
+        especialidad = self.sesion.get(
+            Especialidad, v.entero(datos.get("especialidad_id"), "especialidad", 1))
+        if especialidad is None:
+            raise ErrorValidacion("La especialidad indicada no existe.")
+        return self.catalogo.guardar(
+            Medico(nombre=nombre, colegiado=colegiado, especialidad_id=especialidad.id))
+
+    def editar(self, medico_id: int, datos) -> Medico:
+        medico = self.sesion.get(Medico, medico_id)
+        if medico is None:
+            raise ErrorNegocio("El médico indicado no existe.")
+        medico.nombre, medico.colegiado = self._validar(datos, medico_id)
+        self.catalogo.confirmar()
+        return medico
 
 class CajaService:
     """Donaciones, gastos y cuotas: no pasan por ms-costos."""

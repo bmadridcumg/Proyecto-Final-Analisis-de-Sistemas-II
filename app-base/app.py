@@ -15,7 +15,7 @@ from reportes import MESES, ReporteService
 from semilla import cargar_datos_iniciales
 from services import (
     AtencionService, CajaService, CobroService, ConsultaService, ErrorNegocio,
-    PacienteService,
+    MedicoService, PacienteService,
 )
 
 app = Flask(__name__)
@@ -373,12 +373,37 @@ def fundacion():
         "fundacion.html",
         solicitudes=consultas.solicitudes.listar(estado),
         medicos=consultas.catalogo.medicos(),
+        especialidades=consultas.catalogo.especialidades(),
         tarifas_consulta=consultas.tarifas_por_tipo("CONSULTA"),
         filtro=filtro,
         ahora=datetime.now().strftime("%Y-%m-%dT%H:%M"),
         estado_servicios=consultas.estado_servicios(),
     )
 
+@app.post("/medicos/nuevo")
+@requiere_rol(R.FUNDACION)
+def crear_medico():
+    try:
+        medico = MedicoService(request.sesion).crear(request.form.to_dict())
+        AutenticacionService(request.sesion).registrar(
+            "CREA_MEDICO", "Medico", medico.id, "EXITO", medico.nombre)
+        flash(f"{medico.nombre} se agregó a la lista de médicos.", "success")
+    except ErrorNegocio as error:
+        flash(str(error), "danger")
+    return volver("fundacion")
+
+
+@app.post("/medicos/<int:medico_id>/editar")
+@requiere_rol(R.FUNDACION)
+def editar_medico(medico_id: int):
+    try:
+        medico = MedicoService(request.sesion).editar(medico_id, request.form.to_dict())
+        AutenticacionService(request.sesion).registrar(
+            "EDITA_MEDICO", "Medico", medico.id, "EXITO", medico.nombre)
+        flash(f"Datos de {medico.nombre} actualizados.", "success")
+    except ErrorNegocio as error:
+        flash(str(error), "danger")
+    return volver("fundacion")
 
 @app.post("/solicitudes/<int:solicitud_id>/asignar")
 @requiere_rol(R.FUNDACION)

@@ -130,4 +130,74 @@
     {% endif %}
   </div>
 </div>
+{% if usuario.rol in ['FUNDACION', 'ADMINISTRADOR'] %}
+<div class="tarjeta mt-3">
+  <div class="tarjeta-titulo">
+    Médicos de la fundación
+    <div class="dato fw-normal">
+      Lista de la que se elige al asignar una cita. La especialidad no se cambia: si un médico
+      atiende otra especialidad, agréguelo de nuevo con esa especialidad.
+    </div>
+  </div>
+  <div class="p-3">
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr><th>Nombre</th><th>Colegiado</th><th>Especialidad</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for m in medicos %}
+          <tr>
+            <td colspan="4" class="p-0">
+              <form method="post" action="{{ url_for('editar_medico', medico_id=m.id) }}"
+                    class="row g-2 align-items-center m-0 py-1">
+                <div class="col-md-5">
+                  <label for="medico_nombre_{{ m.id }}" class="visually-hidden">Nombre</label>
+                  <input id="medico_nombre_{{ m.id }}" name="nombre" value="{{ m.nombre }}"
+                         class="form-control form-control-sm" required minlength="5" maxlength="120">
+                </div>
+                <div class="col-md-2">
+                  <label for="medico_colegiado_{{ m.id }}" class="visually-hidden">Colegiado</label>
+                  <input id="medico_colegiado_{{ m.id }}" name="colegiado" value="{{ m.colegiado }}"
+                         class="form-control form-control-sm" maxlength="30">
+                </div>
+                <div class="col-md-3 small">{{ m.especialidad.nombre }}</div>
+                <div class="col-md-2 text-end">
+                  <button class="btn btn-sm btn-outline-secondary">Guardar</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="h6 mt-3">Agregar médico</h3>
+    <form method="post" action="{{ url_for('crear_medico') }}" class="row g-2"
+          onsubmit="this.querySelector('button').disabled = true;">
+      <div class="col-md-5">
+        <label for="nuevo_medico_nombre" class="form-label">Nombre</label>
+        <input id="nuevo_medico_nombre" name="nombre" class="form-control" required
+               minlength="5" maxlength="120" placeholder="Dr. Juan Ramírez">
+      </div>
+      <div class="col-md-2">
+        <label for="nuevo_medico_colegiado" class="form-label">Colegiado</label>
+        <input id="nuevo_medico_colegiado" name="colegiado" class="form-control" maxlength="30">
+      </div>
+      <div class="col-md-3">
+        <label for="nuevo_medico_especialidad" class="form-label">Especialidad</label>
+        <select id="nuevo_medico_especialidad" name="especialidad_id" class="form-select" required>
+          {% for e in especialidades %}
+          <option value="{{ e.id }}">{{ e.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100">Agregar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
