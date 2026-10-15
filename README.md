@@ -55,8 +55,8 @@ docker compose version
 ## 4. Instalación y ejecución
 
 ```bash
-git clone https://github.com/Bransly/asilo-cabeza-de-algodon.git
-cd asilo-cabeza-de-algodon
+git clone https://github.com/bmadridcumg/Proyecto-Final-Analisis-de-Sistemas-II.git
+cd Proyecto-Final-Analisis-de-Sistemas-II
 
 # 1. Crear la configuración a partir de la plantilla
 cp .env.example .env          # en Windows (PowerShell): copy .env.example .env
