@@ -3,6 +3,17 @@
 Formato basado en *Keep a Changelog*. Versionado semántico: MAYOR.MENOR.PARCHE.
 Cada versión se marca en Git con una etiqueta (`git tag v1.2.0`).
 
+## [1.3.0] - 2026-10-16
+
+### Agregado
+- El administrador puede crear usuarios desde la pantalla Usuarios, con clave temporal
+  que se cambia en el primer ingreso.
+- La fundación (y el administrador) pueden agregar médicos al catálogo y corregir su
+  nombre y colegiado.
+- Publicación en Azure (Ubuntu 24.04, Docker Compose y Caddy con HTTPS):
+  https://asilo-umg.mexicocentral.cloudapp.azure.com
+- Envío real de correos al familiar mediante SMTP.
+
 ## [1.2.0] - 2026-10-10
 
 Atiende el informe de revisión del SQA (hallazgos H-01 a H-11) y los pendientes del enunciado.
