@@ -1,10 +1,13 @@
 from datetime import date, datetime
 from decimal import Decimal
 
+from sqlalchemy.exc import IntegrityError
+
 import validaciones as v
 from validaciones import ErrorNegocio, ErrorValidacion  # noqa: F401  (se reexportan)
 
 from clientes import ClienteCostos, ClienteNotificaciones, MicroservicioError
+from database import candado
 from models import (
     CategoriaGasto, CuotaMensual, Donacion, Enfermero, Especialidad, EstadoExamen,
     EstadoSolicitud, EstadoVisita, FichaMedica, Gasto, Medico,
@@ -545,28 +548,37 @@ class CajaService:
         return {"facturado": float(facturado), "pagado": float(pagado),
                 "deuda": float(facturado - pagado)}
 
+
     def registrar_pago_fundacion(self, datos: dict, usuario: str = "") -> PagoFundacion:
         monto = v.monto(datos.get("monto"), "monto del pago")
         referencia = v.texto(datos.get("referencia"), "referencia o número de factura",
                              minimo=3, maximo=60)
-        if self.pagos_fundacion.existe_referencia(referencia):
-            raise ErrorNegocio(
-                f"Ya existe un pago con la referencia {referencia}. "
-                "Verifique que no se este registrando dos veces.")
-        deuda = Decimal(str(self.estado_con_fundacion()["deuda"])).quantize(v.CENTAVO)
-        if monto > deuda:
-            raise ErrorNegocio(
-                f"El pago (Q{monto:,.2f}) es mayor que la deuda actual con la "
-                f"fundación (Q{deuda:,.2f}).")
-        pago = PagoFundacion(
-            fecha=v.fecha(datos.get("fecha"), "fecha del pago"),
-            monto=float(monto),
-            referencia=referencia,
-            descripcion=v.texto(datos.get("descripcion"), "descripcion", obligatorio=False,
-                                maximo=300),
-            registrado_por=usuario,
-        )
-        return self.pagos_fundacion.guardar(pago)
+        fecha = v.fecha(datos.get("fecha"), "fecha del pago")
+        descripcion = v.texto(datos.get("descripcion"), "descripcion", obligatorio=False,
+                              maximo=300)
+        repetida = ErrorNegocio(
+            f"Ya existe un pago con la referencia {referencia}. "
+            "Verifique que no se este registrando dos veces.")
+        sesion = self.pagos_fundacion.sesion
+        sesion.commit() 
+        try:
+            with candado("asilo_pago_fundacion"):
+                if self.pagos_fundacion.existe_referencia(referencia):
+                    raise repetida
+                deuda = Decimal(str(self.estado_con_fundacion()["deuda"])).quantize(v.CENTAVO)
+                if monto > deuda:
+                    raise ErrorNegocio(
+                        f"El pago (Q{monto:,.2f}) es mayor que la deuda actual con la "
+                        f"fundación (Q{deuda:,.2f}).")
+                pago = PagoFundacion(fecha=fecha, monto=float(monto), referencia=referencia,
+                                     descripcion=descripcion, registrado_por=usuario)
+                try:
+                    return self.pagos_fundacion.guardar(pago)
+                except IntegrityError:
+                    sesion.rollback() 
+                    raise repetida
+        except TimeoutError:
+            raise ErrorNegocio("Se esta registrando otro pago a la fundación. Intente de nuevo.")
 
 
 class CobroService:

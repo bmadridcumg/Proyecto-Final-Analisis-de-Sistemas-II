@@ -1,4 +1,4 @@
-"""Casos CP-01 a CP-78 por HTTP. Deja el registro en pruebas/resultados/.
+"""Casos CP-01 a CP-79 por HTTP. Deja el registro en pruebas/resultados/.
 
 Requiere una base de datos nueva (docker compose down -v && up) y las variables
 CLAVE_INICIAL_ADMIN, CLAVE_INICIAL_USUARIOS y API_KEY_SERVICIOS del .env.
@@ -13,6 +13,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -666,6 +667,34 @@ def pruebas_permisos_expediente():
          and r3.status_code == 200 and "Estado de cuenta" not in r3.text
          and hay("Estado de cuenta", r4))
 
+def pruebas_concurrencia():
+    """E-02 (SQA): pagos simultaneos a la fundacion."""
+    A = "Caja"
+    caja = sesion("caja")
+    hoy = date.today().isoformat()
+
+    def enviar(datos, respuestas):
+        r = requests.post(f"{BASE}/caja/pagos-fundacion", data=datos, cookies=caja.cookies)
+        respuestas.append(hay("Pago a la fundación registrado", r))
+
+    def rafaga(lista):
+        respuestas = []
+        hilos = [threading.Thread(target=enviar, args=(d, respuestas)) for d in lista]
+        for h in hilos:
+            h.start()
+        for h in hilos:
+            h.join()
+        return sum(respuestas)
+
+    iguales = rafaga([{"monto": "1.00", "referencia": "FVD-SIM-01", "fecha": hoy}] * 8)
+    m = re.search(r"Deuda actual con la fundaci[oó]n</div>\s*<div[^>]*>\s*Q([\d,]+\.\d{2})",
+                  caja.get(f"{BASE}/caja?pestana=fundacion").text)
+    deuda = m.group(1).replace(",", "") if m else None
+    distintos = rafaga([{"monto": f"{deuda}", "referencia": f"FVD-SIM-1{i}", "fecha": hoy}
+                        for i in range(8)]) if deuda else -1
+    caso("CP-79", A, "Pagos simultáneos a la fundación: uno por referencia y nunca más que la deuda",
+         "RF-43, RF-25, E-02", "8 envíos iguales guardan 1; 8 pagos por toda la deuda guardan 1",
+         iguales == 1 and distintos == 1, f"iguales={iguales}, por la deuda={distintos}")
 
 def guardar_registro():
     carpeta = Path(__file__).parent / "resultados"
@@ -723,6 +752,7 @@ def main():
         pruebas_tolerancia(args, pid)
     pruebas_usuarios()
     pruebas_permisos_expediente()
+    pruebas_concurrencia()
 
     archivo, correctos = guardar_registro()
     print(f"\n{correctos} de {len(RESULTADOS)} casos correctos. Registro: {archivo}")

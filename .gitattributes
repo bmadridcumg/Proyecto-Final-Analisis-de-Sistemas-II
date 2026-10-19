@@ -1,0 +1,2 @@
+# Los scripts de shell se ejecutan dentro de Linux (contenedor de MySQL): siempre con fin de linea LF.
+*.sh text eol=lf

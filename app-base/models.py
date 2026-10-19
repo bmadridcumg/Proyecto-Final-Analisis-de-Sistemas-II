@@ -347,6 +347,6 @@ class PagoFundacion(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fecha: Mapped[date] = mapped_column(Date, default=date.today, index=True)
     monto: Mapped[float] = mapped_column(Dinero(), nullable=False)
-    referencia: Mapped[str] = mapped_column(String(60), nullable=False)
+    referencia: Mapped[str] = mapped_column(String(60), nullable=False, unique=True)
     descripcion: Mapped[str] = mapped_column(String(300), default="")
     registrado_por: Mapped[str] = mapped_column(String(120), default="")

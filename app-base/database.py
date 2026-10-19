@@ -1,7 +1,8 @@
 import os
 import time
+from contextlib import contextmanager
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -26,6 +27,26 @@ Sesion = sessionmaker(bind=motor, autoflush=False, expire_on_commit=False)
 
 class Base(DeclarativeBase):
     pass
+
+@contextmanager
+def candado(nombre: str, segundos: int = 10):
+    """Solo una peticion a la vez entra a la seccion protegida (GET_LOCK de MySQL).
+
+    Usa una conexion aparte para que el candado no dependa de la transaccion.
+    En SQLite (desarrollo) no hace nada: ahi no hay peticiones simultaneas.
+    """
+    if motor.dialect.name != "mysql":
+        yield
+        return
+    with motor.connect() as conexion:
+        obtenido = conexion.execute(text("SELECT GET_LOCK(:n, :s)"),
+                                    {"n": nombre, "s": segundos}).scalar()
+        if obtenido != 1:
+            raise TimeoutError(nombre)
+        try:
+            yield
+        finally:
+            conexion.execute(text("SELECT RELEASE_LOCK(:n)"), {"n": nombre})
 
 
 def crear_tablas(intentos: int = 12, espera: int = 5) -> None:
