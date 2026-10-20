@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ingreso al sistema - Asilo Cabeza de Algodón</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,113 +12,181 @@
   <link href="{{ url_for('static', filename='css/asilo.css') }}" rel="stylesheet">
   <style>
     body {
-      background:
-        radial-gradient(1100px 600px at 85% -10%, #f3dcc8 0%, transparent 60%),
-        radial-gradient(900px 600px at -10% 110%, #dfe7f1 0%, transparent 60%),
-        var(--papel);
-      min-height: 100vh; display: grid; place-items: center;
-    }
-    .acceso { width: 100%; max-width: 920px; padding: 1.5rem; }
-
-    .panel {
+      min-height: 100vh;
       display: grid;
-      grid-template-columns: 1.1fr 1fr;
+      place-items: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .forma {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .forma-1 { top: -70px; left: -50px; width: 300px; height: 300px; border-radius: 48px; background: var(--arena); transform: rotate(-14deg); }
+    .forma-2 { bottom: -100px; right: -40px; width: 340px; height: 340px; border-radius: 56px; background: var(--azul-claro); transform: rotate(18deg); }
+    .forma-3 { top: 12%; right: 14%; width: 26px; height: 26px; border-radius: 8px; background: var(--durazno); transform: rotate(20deg); }
+    .forma-4 { bottom: 16%; left: 12%; width: 20px; height: 20px; border-radius: 6px; background: var(--azul-borde); transform: rotate(-12deg); }
+
+    .acceso {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1000px;
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
       background: var(--superficie);
-      border-radius: 16px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(29, 53, 87, .18), 0 2px 6px rgba(29, 53, 87, .08);
+      box-shadow: 0 2px 6px rgba(60, 45, 25, .06), 0 24px 60px rgba(60, 45, 25, .14);
     }
 
-    .presentacion {
-      background: linear-gradient(160deg, var(--marino) 0%, var(--marino-hondo) 100%);
-      color: #d3deea;
-      position: relative;
-      padding: 2.4rem 2.2rem;
+    .ingreso {
+      padding: 2.2rem 3rem 1.8rem;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 1.6rem;
+      min-height: 600px;
     }
-    .presentacion h1 {
-      font-family: var(--serif);
+    .ingreso .marca {
+      display: flex; align-items: center; gap: .6rem;
+      font-family: var(--serif); font-size: 1.12rem; font-weight: 600; color: var(--marino);
+    }
+    .ingreso .marca span span { color: var(--terracota); }
+    .ingreso form { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1rem;
+                    width: 100%; max-width: 340px; margin: 0 auto; }
+    .ingreso h1 { font-size: 2.1rem; margin: 0 0 .3rem; text-align: center; }
+    .ingreso .intro { color: var(--tinta-suave); text-align: center; margin: 0 0 .4rem; }
+    .ingreso .form-control {
+      min-height: 48px; background: var(--superficie-2); border-color: var(--arena);
+      border-radius: 12px; font-size: 1rem;
+    }
+    .ingreso .input-group .form-control { border-right: none; }
+    .ingreso .input-group .btn { border-color: var(--arena); background: var(--superficie-2);
+                                 color: var(--azul); border-radius: 0 12px 12px 0; min-width: 76px; }
+    .ingreso .entrar { min-height: 50px; border-radius: 12px; font-size: 1rem;
+                       background: var(--marino); border-color: var(--marino); color: #fff; }
+    .ingreso .entrar:hover, .ingreso .entrar:focus { background: var(--marino-hondo); border-color: var(--marino-hondo); color: #fff; }
+    .ingreso .aviso { font-size: .86rem; color: var(--tinta-suave); margin: 0; }
+    .ingreso .pie { text-align: center; font-size: .86rem; line-height: 1.45; }
+    .ingreso .pie strong { display: block; }
+    .ingreso .pie .contacto { color: var(--terracota); font-weight: 600; }
+    .ingreso .pie .lugar { display: block; color: var(--tinta-suave); font-size: .78rem; margin-top: .8rem; }
+
+    .presentacion {
+      position: relative;
+      overflow: hidden;
+      background: var(--marino);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem;
+    }
+    .presentacion .dibujo {
+      position: absolute;
+      width: 115%;
+      max-width: 620px;
+      right: -30%;
+      top: -24%;
+      opacity: .9;
+    }
+    .presentacion .mensaje {
+      position: relative;
+      max-width: 360px;
+      background: rgba(255, 253, 250, 0.14);
+      border: 1px solid rgba(255, 253, 250, 0.28);
+      border-radius: 20px;
+      padding: 1.75rem;
       color: #fff;
-      font-size: 1.85rem;
-      line-height: 1.18;
-      margin: 0 0 .8rem;
-      padding-bottom: .8rem;
-      border-bottom: 2px solid var(--durazno);
-      display: inline-block;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
     }
-    .presentacion p { font-size: .95rem; line-height: 1.6; margin: 0; color: #c3d1e1; }
-    .presentacion .modulos { font-size: .85rem; color: #a9bbd0; margin-top: 2rem; line-height: 1.9; }
+    .presentacion .mensaje h2 { color: #fff; font-size: 1.75rem; line-height: 1.2; margin: .6rem 0 .6rem; }
+    .presentacion .mensaje p { margin: 0; color: #e3eaf3; }
 
-    .ingreso { padding: 2.4rem 2.2rem; }
-    .ingreso h2 { font-size: 1.15rem; margin-bottom: 1.2rem; }
-
-    @media (max-width: 767px) {
-      .panel { grid-template-columns: 1fr; }
-      .presentacion { padding: 1.6rem; }
-      .presentacion .modulos { display: none; }
+    @media (max-width: 860px) {
+      .acceso { grid-template-columns: 1fr; max-width: 480px; border-radius: 22px; }
+      .presentacion { display: none; }
+      .ingreso { min-height: 0; padding: 1.8rem 1.5rem 1.4rem; }
+      .ingreso h1 { font-size: 1.8rem; }
     }
   </style>
 </head>
 <body>
 
-<div class="acceso">
-  <div class="panel">
+<div class="forma forma-1" aria-hidden="true"></div>
+<div class="forma forma-2" aria-hidden="true"></div>
+<div class="forma forma-3" aria-hidden="true"></div>
+<div class="forma forma-4" aria-hidden="true"></div>
 
-    <section class="presentacion">
+<main class="acceso">
+
+  <section class="ingreso">
+    <div class="marca">
+      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="34" height="34">
+      <span>Cabeza de <span>Algodón</span></span>
+    </div>
+
+    <form method="post" action="{{ url_for('login') }}" autocomplete="off">
+      <input type="hidden" name="siguiente" value="{{ siguiente or '' }}">
+
       <div>
-        <h1>Asilo de Ancianos<br>Cabeza de Algodón</h1>
-        <p>
-          Sistema de administración del expediente clínico, la atención médica
-          y el control de cobros de los internos.
-        </p>
+        <h1>¡Bienvenido!</h1>
+        <p class="intro">Ingrese con el usuario y la contraseña que le entregó el administrador.</p>
       </div>
-      <div class="modulos">
-        Expedientes e historial médico<br>
-        Solicitudes y visitas de especialidad<br>
-        Laboratorio y farmacia<br>
-        Caja, donaciones y reportes
-      </div>
-    </section>
-
-    <section class="ingreso">
-      <h2>Ingreso al sistema</h2>
 
       {% with mensajes = get_flashed_messages(with_categories=true) %}
         {% for categoria, texto in mensajes %}
-          <div class="alert alert-{{ categoria }} py-2" role="alert">{{ texto }}</div>
+          <div class="alert alert-{{ categoria }} py-2 mb-0" role="alert">{{ texto }}</div>
         {% endfor %}
       {% endwith %}
 
-      <form method="post" action="{{ url_for('login') }}" autocomplete="off">
-        <input type="hidden" name="siguiente" value="{{ siguiente or '' }}">
+      <div>
+        <label class="form-label" for="usuario">Usuario</label>
+        <input id="usuario" name="usuario" class="form-control" required autofocus
+               maxlength="40" spellcheck="false" autocapitalize="none" placeholder="Su usuario">
+      </div>
 
-        <div class="mb-3">
-          <label class="form-label" for="usuario">Usuario</label>
-          <input id="usuario" name="usuario" class="form-control" required autofocus
-                 maxlength="40" spellcheck="false">
+      <div>
+        <label class="form-label" for="contrasena">Contraseña</label>
+        <div class="input-group">
+          <input id="contrasena" name="contrasena" type="password" class="form-control" required
+                 placeholder="Su contraseña">
+          <button class="btn" type="button" id="verContrasena" aria-controls="contrasena">Ver</button>
         </div>
+      </div>
 
-        <div class="mb-3">
-          <label class="form-label" for="contrasena">Contraseña</label>
-          <div class="input-group">
-            <input id="contrasena" name="contrasena" type="password" class="form-control" required>
-            <button class="btn btn-outline-secondary" type="button" id="verContrasena">Ver</button>
-          </div>
-        </div>
+      <p class="aviso">¿Olvidó su contraseña? El administrador puede restablecerla.</p>
 
-        <button class="btn btn-success w-100">Ingresar</button>
-      </form>
+      <button class="btn entrar w-100">Ingresar</button>
 
-      <p class="dato mt-3 mb-0">
-        Las credenciales son personales. Cada ingreso queda registrado en la bitácora
-        y la cuenta se bloquea 15 minutos tras cinco intentos fallidos.
-      </p>
-    </section>
+      <p class="aviso">Las credenciales son personales. Cada ingreso queda registrado en la bitácora
+        y la cuenta se bloquea 15 minutos tras cinco intentos fallidos.</p>
+    </form>
 
-  </div>
-</div>
+    <div class="pie">
+      <strong>¿Problemas para ingresar?</strong>
+      <span class="contacto">Comuníquese con el administrador del asilo</span>
+      <span class="lugar">Asilo de Ancianos Cabeza de Algodón · Mazatenango, Suchitepéquez</span>
+    </div>
+  </section>
+
+  <section class="presentacion" aria-label="Presentación del sistema">
+    <svg class="dibujo" viewBox="0 0 120 120" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M34 66 A12 12 0 0 1 34 42 A17 17 0 0 1 60 28 A17 17 0 0 1 86 42 A12 12 0 0 1 86 66 Z" stroke="#2b5b8a" stroke-width="5"/>
+      <path d="M47 46 A9 9 0 0 1 58 39" stroke="#2b5b8a" stroke-width="3.5"/>
+      <path d="M38 66 C44 82 76 82 82 66" stroke="#f0b48f" stroke-width="5"/>
+      <path d="M60 79 V98" stroke="#f0b48f" stroke-width="5"/>
+    </svg>
+    <div class="mensaje">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f0b48f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z"/></svg>
+      <h2>Cada abuelo, con su historia completa.</h2>
+      <p>Expediente, citas con especialistas, laboratorio, farmacia y caja en un solo lugar, para el asilo y la fundación.</p>
+    </div>
+  </section>
+
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>

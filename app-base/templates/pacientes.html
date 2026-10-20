@@ -4,54 +4,19 @@
 {% block seccion %}Internos del asilo{% endblock %}
 
 {% block contenido %}
-<div class="row g-4">
+<div class="d-flex flex-column gap-4">
 
-  <div class="col-lg-7">
-    <div class="tarjeta">
-      <div class="tarjeta-titulo d-flex justify-content-between align-items-center">
-        <span>Internos del asilo</span>
-        <span class="dato">{{ pacientes|length }} activos</span>
-      </div>
-      <div class="p-3">
-        {% if pacientes %}
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Interno</th><th>Edad</th><th>Familiar responsable</th>
-                <th class="text-end">Cuota</th><th class="text-end">Expediente</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in pacientes %}
-              <tr>
-                <td>
-                  {{ p.nombre }}
-                  <div class="dato">Ingreso {{ p.fecha_ingreso.strftime('%d/%m/%Y') }}</div>
-                </td>
-                <td>{{ p.edad }}</td>
-                <td>
-                  {{ p.familiar_nombre }}
-                  <div class="dato">{{ p.correo_familiar }}</div>
-                </td>
-                <td class="text-end monto">Q{{ '%.2f'|format(p.cuota_mensual) }}</td>
-                <td class="text-end">
-                  <a class="btn btn-sm btn-outline-success"
-                     href="{{ url_for('expediente', paciente_id=p.id) }}">Abrir</a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-          <p class="text-muted mb-0">Todavía no hay internos registrados.</p>
-        {% endif %}
-      </div>
+  <div class="barra-herramientas">
+    <div class="buscar">
+      <label for="buscarInterno" class="visually-hidden">Buscar interno</label>
+      <input id="buscarInterno" type="search" class="form-control" placeholder="Buscar por nombre o familiar"
+             autocomplete="off">
     </div>
+    <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#nuevoInterno"
+            aria-expanded="false" aria-controls="nuevoInterno">+ Nuevo interno</button>
   </div>
 
-  <div class="col-lg-5">
+  <div class="collapse" id="nuevoInterno">
     <div class="tarjeta">
       <div class="tarjeta-titulo">Registrar nuevo interno</div>
       <div class="p-3">
@@ -114,5 +79,78 @@
     </div>
   </div>
 
+  <div class="tarjeta">
+    <div class="tarjeta-titulo d-flex justify-content-between align-items-center">
+      <span>Internos del asilo</span>
+      <span class="dato" id="conteoInternos">{{ pacientes|length }} activos</span>
+    </div>
+    {% if pacientes %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0" id="tablaInternos">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Interno</th><th class="d-none d-sm-table-cell">Ingreso</th><th class="d-none d-md-table-cell">Familiar responsable</th>
+            <th class="text-end d-none d-sm-table-cell">Cuota</th><th class="d-none d-lg-table-cell">Estado</th><th class="text-end pe-3">Expediente</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pacientes %}
+          {% set ns = namespace(ini='') %}
+          {% for w in p.nombre.split() if ns.ini|length < 2 %}{% set ns.ini = ns.ini ~ w[0]|upper %}{% endfor %}
+          <tr data-buscar="{{ (p.nombre ~ ' ' ~ p.familiar_nombre)|lower }}">
+            <td class="ps-3">
+              <div class="interno">
+                <span class="avatar tono-{{ loop.index0 % 4 }}" aria-hidden="true">{{ ns.ini }}</span>
+                <div>
+                  <a class="nombre" href="{{ url_for('expediente', paciente_id=p.id) }}">{{ p.nombre }}</a>
+                  <div class="dato">{{ p.edad }} años<span class="d-md-none"> · {{ p.familiar_nombre }}</span></div>
+                </div>
+              </div>
+            </td>
+            <td class="text-nowrap d-none d-sm-table-cell">{{ p.fecha_ingreso.strftime('%d/%m/%Y') }}</td>
+            <td class="d-none d-md-table-cell">
+              {{ p.familiar_nombre }}
+              <div class="dato">{{ p.correo_familiar }}</div>
+            </td>
+            <td class="text-end monto text-nowrap d-none d-sm-table-cell">Q{{ '%.2f'|format(p.cuota_mensual) }}</td>
+            <td class="d-none d-lg-table-cell"><span class="badge bg-success">Activo</span></td>
+            <td class="text-end pe-3">
+              <a class="btn btn-sm btn-outline-success text-nowrap"
+                 href="{{ url_for('expediente', paciente_id=p.id) }}">Abrir</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-muted px-3 py-3 mb-0 d-none" id="sinResultados">Ningún interno coincide con la búsqueda.</p>
+    {% else %}
+      <p class="text-muted p-3 mb-0">Todavía no hay internos registrados.</p>
+    {% endif %}
+  </div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const campo = document.getElementById('buscarInterno');
+  const filas = document.querySelectorAll('#tablaInternos tbody tr');
+  const vacio = document.getElementById('sinResultados');
+  const conteo = document.getElementById('conteoInternos');
+  if (!campo || !filas.length) return;
+  campo.addEventListener('input', () => {
+    const texto = campo.value.trim().toLowerCase();
+    let visibles = 0;
+    filas.forEach((fila) => {
+      const coincide = fila.dataset.buscar.includes(texto);
+      fila.hidden = !coincide;
+      if (coincide) visibles += 1;
+    });
+    vacio.classList.toggle('d-none', visibles > 0);
+    conteo.textContent = texto ? `${visibles} de ${filas.length}` : `${filas.length} activos`;
+  });
+})();
+</script>
 {% endblock %}

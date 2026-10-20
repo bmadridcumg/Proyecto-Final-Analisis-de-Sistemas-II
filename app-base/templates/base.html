@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}Asilo Cabeza de Algodón{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='img/logo.svg') }}" type="image/svg+xml">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,50 +17,106 @@
 {% set rol = usuario.rol if usuario else '' %}
 {% set admin = rol == 'ADMINISTRADOR' %}
 {% set actual = request.endpoint %}
+{% set ver_solicitudes = admin or rol in ['FUNDACION', 'MEDICO_ESPECIALISTA'] %}
+{% set ver_laboratorio = admin or rol == 'LABORATORIO' %}
+{% set ver_farmacia = admin or rol == 'FARMACIA' %}
+{% set ver_caja = admin or rol == 'CAJA' %}
 
 <aside class="lateral">
   <div class="marca">
-    <a href="{{ url_for('panel') }}" class="nombre">Asilo Cabeza de Algodón</a>
-    <div class="lugar">Mazatenango, Suchitepéquez</div>
+    <a href="{{ url_for('panel') }}" class="nombre">
+      <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" width="34" height="34">
+      <span>Cabeza de Algodón</span>
+    </a>
+    <button class="btn-menu" type="button" data-bs-toggle="collapse" data-bs-target="#menuLateral"
+            aria-controls="menuLateral" aria-expanded="false" aria-label="Abrir o cerrar el menú">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
   </div>
 
-  <nav>
-    <a href="{{ url_for('panel') }}" class="{{ 'activo' if actual == 'panel' }}">Panel</a>
-    {% if puede_ver_expediente %}
-    <a href="{{ url_for('pacientes') }}"
-       class="{{ 'activo' if actual in ['pacientes', 'expediente'] }}">Internos</a>
-    {% endif %}
-    {% if admin or rol in ['FUNDACION', 'MEDICO_ESPECIALISTA'] %}
-      <a href="{{ url_for('fundacion') }}"
-         class="{{ 'activo' if actual in ['fundacion', 'visita'] }}">Solicitudes</a>
-    {% endif %}
-    {% if admin or rol == 'LABORATORIO' %}
-      <a href="{{ url_for('laboratorio') }}"
-         class="{{ 'activo' if actual == 'laboratorio' }}">Laboratorio</a>
-    {% endif %}
-    {% if admin or rol == 'FARMACIA' %}
-      <a href="{{ url_for('farmacia') }}"
-         class="{{ 'activo' if actual == 'farmacia' }}">Farmacia</a>
-    {% endif %}
-    {% if admin or rol == 'CAJA' %}
-      <a href="{{ url_for('caja') }}" class="{{ 'activo' if actual == 'caja' }}">Caja</a>
-    {% endif %}
-    <a href="{{ url_for('reportes') }}"
-       class="{{ 'activo' if actual in ['reportes', 'ver_reporte'] }}">Reportes</a>
-    {% if admin %}
-      <a href="{{ url_for('usuarios') }}" class="{{ 'activo' if actual == 'usuarios' }}">Usuarios</a>
-      <a href="{{ url_for('bitacora') }}" class="{{ 'activo' if actual == 'bitacora' }}">Bitácora</a>
-    {% endif %}
-  </nav>
-
-  <div class="servicios">
-    <div>
-      <span class="punto {{ 'activo' if estado_servicios and estado_servicios.costos else 'caido' }}"></span>
-      Cobros {{ 'en línea' if estado_servicios and estado_servicios.costos else 'sin conexión' }}
+  <div class="collapse menu-lateral" id="menuLateral">
+    <div class="lugar">
+      <div class="lugar-nombre">Asilo de ancianos</div>
+      <div class="lugar-ciudad">Mazatenango, Suchitepéquez</div>
     </div>
-    <div>
-      <span class="punto {{ 'activo' if estado_servicios and estado_servicios.notificaciones else 'caido' }}"></span>
-      Correo {{ 'en línea' if estado_servicios and estado_servicios.notificaciones else 'sin conexión' }}
+
+    <nav aria-label="Menú principal">
+      <a href="{{ url_for('panel') }}" class="{{ 'activo' if actual == 'panel' }}"
+         {% if actual == 'panel' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+
+      {% if puede_ver_expediente or ver_solicitudes or ver_laboratorio or ver_farmacia %}
+      <div class="grupo">Atención</div>
+      {% endif %}
+      {% if puede_ver_expediente %}
+      <a href="{{ url_for('pacientes') }}" class="{{ 'activo' if actual in ['pacientes', 'expediente'] }}"
+         {% if actual in ['pacientes', 'expediente'] %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3 3 3 6"/></svg>
+        Internos
+      </a>
+      {% endif %}
+      {% if ver_solicitudes %}
+      <a href="{{ url_for('fundacion') }}" class="{{ 'activo' if actual in ['fundacion', 'visita'] }}"
+         {% if actual in ['fundacion', 'visita'] %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+        Solicitudes
+      </a>
+      {% endif %}
+      {% if ver_laboratorio %}
+      <a href="{{ url_for('laboratorio') }}" class="{{ 'activo' if actual == 'laboratorio' }}"
+         {% if actual == 'laboratorio' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6A2 2 0 0 0 19 18l-5-9V3"/></svg>
+        Laboratorio
+      </a>
+      {% endif %}
+      {% if ver_farmacia %}
+      <a href="{{ url_for('farmacia') }}" class="{{ 'activo' if actual == 'farmacia' }}"
+         {% if actual == 'farmacia' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-45 12 12)"/><path d="M9 9l6 6"/></svg>
+        Farmacia
+      </a>
+      {% endif %}
+
+      <div class="grupo">{{ 'Finanzas' if ver_caja else 'Consultas' }}</div>
+      {% if ver_caja %}
+      <a href="{{ url_for('caja') }}" class="{{ 'activo' if actual == 'caja' }}"
+         {% if actual == 'caja' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h3"/></svg>
+        Caja
+      </a>
+      {% endif %}
+      <a href="{{ url_for('reportes') }}" class="{{ 'activo' if actual in ['reportes', 'ver_reporte'] }}"
+         {% if actual in ['reportes', 'ver_reporte'] %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        Reportes
+      </a>
+
+      {% if admin %}
+      <div class="grupo">Administración</div>
+      <a href="{{ url_for('usuarios') }}" class="{{ 'activo' if actual == 'usuarios' }}"
+         {% if actual == 'usuarios' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Usuarios
+      </a>
+      <a href="{{ url_for('bitacora') }}" class="{{ 'activo' if actual == 'bitacora' }}"
+         {% if actual == 'bitacora' %}aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg>
+        Bitácora
+      </a>
+      {% endif %}
+    </nav>
+
+    <div class="servicios">
+      <div>
+        <span class="punto {{ 'activo' if estado_servicios and estado_servicios.costos else 'caido' }}"></span>
+        Cobros {{ 'en línea' if estado_servicios and estado_servicios.costos else 'sin conexión' }}
+      </div>
+      <div>
+        <span class="punto {{ 'activo' if estado_servicios and estado_servicios.notificaciones else 'caido' }}"></span>
+        Correo {{ 'en línea' if estado_servicios and estado_servicios.notificaciones else 'sin conexión' }}
+      </div>
     </div>
   </div>
 </aside>
@@ -68,7 +125,10 @@
   <header class="superior">
     <h1 class="seccion">{% block seccion %}Panel{% endblock %}</h1>
     {% if usuario %}
-    <div class="d-flex align-items-center gap-3">
+    <div class="cuenta">
+      {% set ns = namespace(ini='') %}
+      {% for w in (usuario.nombre or '?').split() if not w.endswith('.') and ns.ini|length < 2 %}{% set ns.ini = ns.ini ~ w[0]|upper %}{% endfor %}
+      <span class="avatar" aria-hidden="true">{{ ns.ini or '?' }}</span>
       <div class="quien">
         <div class="nombre">{{ usuario.nombre }}</div>
         <div class="rol">{{ usuario.rol|replace('_', ' ')|capitalize }}</div>
