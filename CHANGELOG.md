@@ -3,6 +3,17 @@
 Formato basado en *Keep a Changelog*. Versionado semántico: MAYOR.MENOR.PARCHE.
 Cada versión se marca en Git con una etiqueta (`git tag v1.2.0`).
 
+## [1.4.0] - 2026-10-19
+
+### Corregido
+- E-02 (SQA): pagos simultáneos a la fundación. Una referencia no se repite y nunca se paga
+  más que la deuda (índice único en la base y candado GET_LOCK). Prueba CP-79.
+- E-01 (SQA): `.gitattributes` para que `db/init.sh` funcione al clonar en Windows.
+
+### Cambiado
+- Rediseño visual: barra lateral agrupada con iconos, logo propio, login nuevo, lista de
+  internos con avatar, buscador y pastillas de estado. Adaptado a celular y tablet.
+
 ## [1.3.0] - 2026-10-16
 
 ### Agregado
